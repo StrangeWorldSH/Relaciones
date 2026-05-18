@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecosistemas y Relaciones Biológicas</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    
+    <style>
+        /* --- CONFIGURACIÓN BASE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            background-color: #020617;
+        }
+
+        /* --- FONDOS DE IMÁGENES DINÁMICAS --- */
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.8s ease-in-out;
+            filter: brightness(0.22) contrast(1.1);
+        }
+
+        .bg-portada { background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80'); }
+        .bg-ecosistemas { background-image: url('https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1920&q=80'); }
+        .bg-intra { background-image: url('https://images.unsplash.com/photo-1473081556163-2a17de81fc97?auto=format&fit=crop&w=1920&q=80'); }
+        .bg-inter { background-image: url('https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=1920&q=80'); }
+
+        /* --- BARRA DE PROGRESO --- */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1001;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 25%;
+            background: #10b981;
+            box-shadow: 0 0 15px #10b981;
+            transition: width 0.4s ease;
+        }
+
+        /* --- ESTRUCTURA DE DIAPOSITIVAS --- */
+        .slide {
+            display: none;
+            min-height: 100vh;
+            padding: 50px 5% 120px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .slide.active {
+            display: flex !important;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- CUADRO DE PORTADA --- */
+        .portada-box {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            padding: 45px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 850px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+        }
+
+        .institucion {
+            font-size: 0.95rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #38bdf8;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .titulo-principal {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #ffffff, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-titulo {
+            font-size: 1.5rem;
+            color: #34d399;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .info-academic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            text-align: left;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 30px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* --- SECCIONES DE CONTENIDO --- */
+        .slide-title {
+            font-size: 2.6rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-align: center;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .slide-desc {
+            font-size: 1.1rem;
+            color: #d1d5db;
+            text-align: center;
+            max-width: 800px;
+            margin-bottom: 35px;
+            line-height: 1.5;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .card-presentacion {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        /* --- MODEL-VIEWER 3D --- */
+        model-viewer {
+            width: 100%;
+            height: 220px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            outline: none;
+            --poster-color: transparent;
+        }
+
+        /* --- CONTENEDORES DE IMÁGENES --- */
+        .img-container {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .card-presentacion:hover .img-container img {
+            transform: scale(1.06);
+        }
+
+        .card-presentacion h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #ffffff;
+            align-self: flex-start;
+            margin-top: 5px;
+        }
+
+        .card-presentacion p {
+            font-size: 0.95rem;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+
+        /* --- ETIQUETAS BIOLÓGICAS --- */
+        .bio-tag {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            align-self: flex-start;
+        }
+        .tag-positivo { background-color: #059669; }
+        .tag-negativo { background-color: #dc2626; }
+        .tag-neutro { background-color: #d97706; }
+
+        /* --- CAPA FIJA DE CONTROLES --- */
+        .controls-layer {
+            position: fixed;
+            bottom: 30px;
+            right: 5%;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: #ffffff;
+            color: #0f172a;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-portada">
+
+    <div class="background-overlay bg-portada" id="bgOverlay"></div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="topProgress"></div>
+    </div>
+
+    <section class="slide active" id="slide-1" data-bg="bg-portada">
+        <div class="portada-box">
+            <div class="institucion"><i class="fa-solid fa-dna"></i> Proyecto de Ciencias Biológicas</div>
+            <h1 class="titulo-principal">Los Ecosistemas</h1>
+            <p class="sub-titulo">Y sus Relaciones Interespecíficas e Intraespecíficas</p>
+            
+            <div class="info-academic-grid">
+                <div>
+                    <div class="info-label"><i class="fa-solid fa-user-group"></i> Autores:</div>
+                    <div class="info-value">Carlos Escalona</div>
+                    <div class="info-value">Joseilys Aguero</div>
+                </div>
+                <div>
+                    <div class="info-label"><i class="fa-solid fa-signature"></i> Evaluación a cargo de:</div>
+                    <div class="info-value">Prof. Wilma Jiménez</div>
+                </div>
+            </div>
+            <div class="fecha-portada" style="margin-top: 25px; color: #9ca3af; font-size: 0.9rem;">Mayo, 2026</div>
+        </div>
+    </section>
+
+    <section class="slide" id="slide-2" data-bg="bg-ecosistemas">
+        <h2 class="slide-title">Tipos de Ecosistemas</h2>
+        <p class="slide-desc">Sistemas dinámicos formados por una comunidad de seres vivos (biocenosis) que interactúan dinámicamente con su ambiente físico (biotopo).</p>
+        
+        <div class="grid-layout">
+            <div class="card-presentacion">
+                <model-viewer id="modelTerrestre" src="Ecosistemas/Terrestre.glb" camera-controls auto-rotate shadow-intensity="1" alt="Modelo 3D Terrestre"></model-viewer>
+                <h3>Terrestres</h3>
+                <p>Desarrollados sobre el suelo y subsuelo continental. Su biodiversidad depende enteramente del agua disponible, la temperatura y la altitud climática.</p>
+            </div>
+
+            <div class="card-presentacion">
+                <model-viewer id="modelAcuatico" src="Ecosistemas/Acuáticos.glb" camera-controls auto-rotate shadow-intensity="0" exposure="1.5" lighting-color="#ffffff" alt="Modelo 3D Acuático"></model-viewer>
+                <h3>Acuáticos</h3>
+                <p>Establecidos en cuerpos de agua. Integran los biomas oceánicos marinos (alta salinidad) y los sistemas dulceacuícolas continentales como ríos y lagos.</p>
+            </div>
+
+            <div class="card-presentacion">
+                <model-viewer id="modelMixto" src="Ecosistemas/Mixtos.glb" camera-controls auto-rotate shadow-intensity="1" alt="Modelo 3D Mixto"></model-viewer>
+                <h3>Mixtos / Transición</h3>
+                <p>Zonas de amortiguamiento e intercambio biológico directo entre la tierra y el agua, tales como manglares, humedales y estuarios protegidos.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide" id="slide-3" data-bg="bg-intra">
+        <h2 class="slide-title">Relaciones Intraespecíficas</h2>
+        <p class="slide-desc">Interacciones biológicas que ocurren estrictamente entre individuos de la **misma especie**.</p>
+        
+        <div class="grid-layout">
+            <div class="card-presentacion">
+                <div class="bio-tag tag-positivo">Cooperación</div>
+                <div class="img-container">
+                    <img src="https://images.unsplash.com/photo-1589656966895-2f33e7653819?auto=format&fit=crop&w=500&q=80" alt="Estatales">
+                </div>
+                <h3>Estatales o Sociales</h3>
+                <p>Organizaciones complejas integradas por castas anatómicas con un reparto de tareas donde ningún individuo sobrevive aislado (ej: abejas o termitas).</p>
+            </div>
+
+            <div class="card-presentacion">
+                <div class="bio-tag tag-positivo">Asociación</div>
+                <div class="img-container">
+                    <img src="https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=500&q=80" alt="Gregarias">
+                </div>
+                <h3>Gregarias</h3>
+                <p>Conjuntos de organismos que se reúnen temporalmente para fines de defensa colectiva, migración masiva o localización de alimento (ej: bandadas o bancos de peces).</p>
+            </div>
+
+            <div class="card-presentacion">
+                <div class="bio-tag tag-negativo">Competencia</div>
+                <div class="img-container">
+                    <img src="https://i.ibb.co/3y838sBG/image.png" alt="Competencia">
+                </div>
+                <h3>Competencia Interna</h3>
+                <p>Disputa entre miembros de una población por recursos del entorno que se vuelven escasos: territorio, alimento o parejas reproductivas.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="slide" id="slide-4" data-bg="bg-inter">
+        <h2 class="slide-title">Relaciones Interespecíficas</h2>
+        <p class="slide-desc">Interacciones ecológicas fundamentales entabladas entre poblaciones de **diferentes especies**.</p>
+        
+        <div class="grid-layout">
+            <div class="card-presentacion">
+                <div class="bio-tag tag-positivo">Mutualismo (+/+)</div>
+                <div class="img-container">
+                    <img src="https://images.unsplash.com/photo-1546026423-cc4642628d2b?auto=format&fit=crop&w=500&q=80" alt="Mutualismo">
+                </div>
+                <h3>Mutualismo</h3>
+                <p>Interdependencia biológica donde ambas especies obtienen provecho recíproco sustancial (ej: polinizadores y flores, o líquenes).</p>
+            </div>
+
+            <div class="card-presentacion">
+                <div class="bio-tag tag-negativo">Depredación (+/-)</div>
+                <div class="img-container">
+                    <img src="https://images.unsplash.com/photo-1602491453631-e2a5ad90a131?auto=format&fit=crop&w=500&q=80" alt="Depredación">
+                </div>
+                <h3>Depredación</h3>
+                <p>Relación trófica activa donde una especie (depredador) persigue, captura y elimina a otra (presa) para subsistir.</p>
+            </div>
+
+            <div class="card-presentacion">
+                <div class="bio-tag tag-neutro">Comensalismo (+/0)</div>
+                <div class="img-container">
+                    <img src="https://i.ibb.co/FL5JGC9w/image.png" alt="Comensalismo">
+                </div>
+                <h3>Comensalismo</h3>
+                <p>Un organismo se beneficia de otra especie obteniendo transporte o restos de comida, sin provocarle beneficio ni daño (ej: rémora y tiburón).</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="controls-layer">
+        <button class="control-btn" id="btnPrev" disabled><i class="fa-solid fa-chevron-left"></i> Anterior</button>
+        <button class="control-btn" id="btnNext">Siguiente <i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const progressBar = document.getElementById('topProgress');
+        const bgOverlay = document.getElementById('bgOverlay');
+        let currentIdx = 0;
+
+        function changeSlide() {
+            slides.forEach((slide, index) => {
+                if (index === currentIdx) {
+                    slide.classList.add('active');
+                    const targetBgClass = slide.getAttribute('data-bg');
+                    if(bgOverlay && targetBgClass) {
+                        bgOverlay.className = `background-overlay ${targetBgClass}`;
+                    }
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            if(btnPrev) btnPrev.disabled = (currentIdx === 0);
+
+            if(btnNext) {
+                if (currentIdx === slides.length - 1) {
+                    btnNext.innerHTML = 'Terminar <i class="fa-solid fa-check"></i>';
+                } else {
+                    btnNext.innerHTML = 'Siguiente <i class="fa-solid fa-chevron-right"></i>';
+                }
+            }
+
+            if(progressBar) {
+                const percentage = ((currentIdx + 1) / slides.length) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+        }
+
+        if(btnNext) {
+            btnNext.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentIdx < slides.length - 1) {
+                    currentIdx++;
+                    changeSlide();
+                } else {
+                    alert("Fin de la presentación. ¡Éxito Carlos y Joseilys!");
+                }
+            });
+        }
+
+        if(btnPrev) {
+            btnPrev.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentIdx > 0) {
+                    currentIdx--;
+                    changeSlide();
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            changeSlide();
+        });
+    </script>
+</body>
+</html>
